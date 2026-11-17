@@ -23,7 +23,7 @@ pi install --local /home/adrian/ste-lint  # current project only
 From the repository, pinned to a tag:
 
 ```bash
-pi install git:github.com/adrianhoehne/ste-lint@v0.1.6
+pi install git:github.com/adrianhoehne/ste-lint@v0.1.7
 ```
 
 Try it once without saving anything:
@@ -174,8 +174,8 @@ Design decisions and their reasons: [`docs/decisions.md`](docs/decisions.md).
 npm test
 ```
 
-101 tests: 77 for the linter (English, German, language detection, word lists,
-offsets), 24 for the extension against a stand-in `pi` object.
+104 tests: 77 for the linter (English, German, language detection, word lists,
+offsets), 27 for the extension against a stand-in `pi` object.
 
 ## License
 

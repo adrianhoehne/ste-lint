@@ -1,7 +1,7 @@
 # Flows
 
 How the linter reaches a text, and where the repair hook sits. State as built,
-version 0.1.3.
+version 0.1.6.
 
 Legend: green = does the right thing · amber = check with a finding · blue = hook
 or command.
@@ -66,6 +66,10 @@ flowchart LR
   class R good
   class P plain
 ```
+
+The footer carries the score of every answer to you — `STE(85) Current: 74` — and
+keeps a finished round visible as `STE(85) Current: 74 → 94`. That number costs no
+model round; it is a lint of a text that already exists.
 
 Threshold default 90, set with `/ste-guard on 85`. One repair per answer: the
 continuation itself is not treated as a user run, so gate 6 is the loop stop.
