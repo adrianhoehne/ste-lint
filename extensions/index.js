@@ -247,7 +247,7 @@ export default async function steLint(pi) {
       const [first, second] = (args ?? "").trim().toLowerCase().split(/\s+/).filter(Boolean);
 
       if (!first) {
-        const status = state.enabled ? `an, Schwelle ${state.threshold}` : "aus";
+        const status = state.enabled ? `on, threshold ${state.threshold}` : "off";
         showStatus(ctx);
         ctx.ui.notify(`ste-guard: ${status}`, "info");
         return;
@@ -260,7 +260,7 @@ export default async function steLint(pi) {
           state.handledIds.clear();
           state.repairsThisRun = 0;
         }
-        const status = state.enabled ? `an, Schwelle ${state.threshold}` : "aus";
+        const status = state.enabled ? `on, threshold ${state.threshold}` : "off";
         showStatus(ctx);
         ctx.ui.notify(`ste-guard: ${status}`, "info");
         return;
@@ -269,7 +269,7 @@ export default async function steLint(pi) {
         state.threshold = Number(first);
         state.enabled = true;
         showStatus(ctx);
-        ctx.ui.notify(`ste-guard: an, Schwelle ${state.threshold}`, "info");
+        ctx.ui.notify(`ste-guard: on, threshold ${state.threshold}`, "info");
         return;
       }
       ctx.ui.notify("Usage: /ste-guard [on|off|80]", "warning");

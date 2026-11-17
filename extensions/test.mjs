@@ -1,10 +1,10 @@
 /**
- * Tests für die Erweiterung: die acht Prüfungen und der Haken selbst.
+ * Extension tests: the seven gates and the hook itself.
  *
- *   node --test plugin/test.mjs
+ *   node --test extensions/test.mjs
  *
- * Kein pi nötig: `pi` wird nachgebaut, damit jeder der acht Fälle einmal
- * durchlaufen wird — vor allem der Fall, der sonst zur Schleife führt.
+ * No pi needed: `pi` is a stand-in, so every gate runs once — especially the one
+ * that stops the loop.
  */
 
 import test from "node:test";
@@ -78,19 +78,19 @@ async function enabledHarness(options) {
   return h;
 }
 
-// ── reine Prüfungen ─────────────────────────────────────────────────────────
+// ── pure gates ──────────────────────────────────────────────────────────────
 
-test("assistantText nimmt nur Textblöcke", () => {
+test("assistantText takes text blocks only", () => {
   assert.equal(assistantText(assistantMessage("eins", [{ type: "thinking", thinking: "x" }])), "eins");
   assert.equal(assistantText(undefined), "");
 });
 
-test("hasToolCall erkennt Werkzeugaufrufe", () => {
+test("hasToolCall finds tool calls", () => {
   assert.equal(hasToolCall(assistantMessage("text")), false);
   assert.equal(hasToolCall(assistantMessage("text", [{ type: "toolCall", name: "bash" }])), true);
 });
 
-test("codeShare zählt Zäune und Zauninhalt", () => {
+test("codeShare counts fences and their content", () => {
   assert.equal(codeShare("nur Text"), 0);
   assert.equal(codeShare("```\ncode\n```"), 1);
   const mixed = "Text\n```\ncode\n```\nmehr Text";
@@ -100,68 +100,68 @@ test("codeShare zählt Zäune und Zauninhalt", () => {
 
 const base = { enabled: true, outcome: "completed", mode: "tui", startedByUser: true };
 
-test("Prüfung 1: ausgeschaltet greift nicht", () => {
+test("gate 1: a switched-off hook does nothing", () => {
   assert.equal(evaluateGuard({ ...base, enabled: false, message: assistantMessage("x"), messageEntryId: "a" }).reason, "disabled");
 });
 
-test("Prüfung 2: Abbruch greift nicht", () => {
+test("gate 2: an aborted run is left alone", () => {
   assert.equal(evaluateGuard({ ...base, outcome: "aborted", message: assistantMessage("x"), messageEntryId: "a" }).reason, "outcome:aborted");
   assert.equal(evaluateGuard({ ...base, outcome: "error", message: assistantMessage("x"), messageEntryId: "a" }).reason, "outcome:error");
 });
 
-test("Prüfung 3: nur im TUI", () => {
+test("gate 3: terminal mode only", () => {
   for (const mode of ["json", "print", "rpc"]) {
     assert.equal(evaluateGuard({ ...base, mode, message: assistantMessage("x"), messageEntryId: "a" }).reason, `mode:${mode}`);
   }
 });
 
-test("Prüfung 4: nur Läufe aus einer Nutzereingabe", () => {
+test("gate 4: only runs started by a user", () => {
   assert.equal(evaluateGuard({ ...base, startedByUser: false, message: assistantMessage("x"), messageEntryId: "a" }).reason, "not-a-user-run");
 });
 
-test("Prüfung 5: Nachricht mit toolCall greift nicht", () => {
+test("gate 5: a message with a tool call is skipped", () => {
   const message = assistantMessage("text", [{ type: "toolCall", name: "bash" }]);
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "a" }).reason, "has-tool-call");
 });
 
-test("Prüfung 6: dieselbe Nachricht nur einmal", () => {
+test("gate 6: one repair per message", () => {
   const message = assistantMessage("text");
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "a", handledIds: new Set(["a"]) }).reason, "already-handled");
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "b", repairsThisRun: 1 }).reason, "repair-limit");
 });
 
-test("Prüfung 7: überwiegend Code greift nicht", () => {
+test("gate 7: mostly code is skipped", () => {
   const message = assistantMessage("```\nline1\nline2\nline3\nline4\n```");
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "a" }).reason, "mostly-code");
 });
 
-test("alle Prüfungen grün erlauben den Eingriff", () => {
+test("all gates green allow the repair", () => {
   assert.deepEqual(evaluateGuard({ ...base, message: assistantMessage("Remove the cover."), messageEntryId: "a" }), {
     allow: true,
     reason: "allow",
   });
 });
 
-// ── Erweiterung ────────────────────────────────────────────────────────────
+// ── extension ───────────────────────────────────────────────────────────────
 
-test("ste-guard ist standardmäßig aus", async () => {
+test("ste-guard is off by default", async () => {
   const h = harness();
   await steLint(h.pi);
   await h.run("ste-guard");
-  assert.match(h.notices.at(-1).message, /aus/);
+  assert.match(h.notices.at(-1).message, /off/);
 });
 
-test("ste-guard on und off schalten den Haken", async () => {
+test("ste-guard on and off switch the hook", async () => {
   const h = harness();
   const api = await steLint(h.pi);
   await h.run("ste-guard", "on");
   assert.equal(api.state.enabled, true);
-  assert.match(h.notices.at(-1).message, /an, Schwelle 90/);
+  assert.match(h.notices.at(-1).message, /on, threshold 90/);
   await h.run("ste-guard", "off");
   assert.equal(api.state.enabled, false);
 });
 
-test("ste-guard nimmt eine eigene Schwelle", async () => {
+test("ste-guard accepts a custom threshold", async () => {
   const h = harness();
   const api = await steLint(h.pi);
   await h.run("ste-guard", "on 80");
@@ -171,14 +171,14 @@ test("ste-guard nimmt eine eigene Schwelle", async () => {
   assert.equal(api.state.enabled, true);
 });
 
-test("ste-guard weist Unsinn ab", async () => {
+test("ste-guard rejects unknown input", async () => {
   const h = harness();
   await steLint(h.pi);
   await h.run("ste-guard", "vielleicht");
   assert.match(h.notices.at(-1).message, /Usage/);
 });
 
-test("Haken repariert eine schlechte Antwort einmal", async () => {
+test("the hook repairs a bad answer once", async () => {
   const h = await enabledHarness();
   h.setBranch([entry("m1", assistantMessage(BAD_TEXT))]);
   await h.fire("before_agent_start", { messageType: "user" });
@@ -195,21 +195,21 @@ test("Haken repariert eine schlechte Antwort einmal", async () => {
   assert.equal(again, undefined);
 });
 
-test("Haken greift nicht nach einer eigenen Reparaturrunde", async () => {
+test("the hook skips its own repair round", async () => {
   const h = await enabledHarness();
   h.setBranch([entry("m2", assistantMessage(BAD_TEXT))]);
   await h.fire("before_agent_start", { messageType: "custom" });
   assert.equal(await h.settle(), undefined);
 });
 
-test("Haken greift nicht bei einer Nachricht mit toolCall", async () => {
+test("the hook skips a message with a tool call", async () => {
   const h = await enabledHarness();
   h.setBranch([entry("m3", assistantMessage(BAD_TEXT, [{ type: "toolCall", name: "bash" }]))]);
   await h.fire("before_agent_start", { messageType: "user" });
   assert.equal(await h.settle(), undefined);
 });
 
-test("Haken greift nicht bei Abbruch oder im json-Modus", async () => {
+test("the hook skips an aborted run and json mode", async () => {
   const aborted = await enabledHarness();
   aborted.setBranch([entry("m4", assistantMessage(BAD_TEXT))]);
   await aborted.fire("before_agent_start", { messageType: "user" });
@@ -221,14 +221,14 @@ test("Haken greift nicht bei Abbruch oder im json-Modus", async () => {
   assert.equal(await json.settle(), undefined);
 });
 
-test("Haken lässt gute Antworten in Ruhe", async () => {
+test("the hook leaves good answers alone", async () => {
   const h = await enabledHarness();
   h.setBranch([entry("m6", assistantMessage(GOOD_TEXT))]);
   await h.fire("before_agent_start", { messageType: "user" });
   assert.equal(await h.settle(), undefined);
 });
 
-test("Statuszeile zeigt den Schalter und ändert sich mit ihm", async () => {
+test("the footer shows the switch and follows it", async () => {
   const h = harness();
   await steLint(h.pi);
   await h.fire("session_start", {});
@@ -242,7 +242,7 @@ test("Statuszeile zeigt den Schalter und ändert sich mit ihm", async () => {
   assert.equal(h.statuses.at(-1).text, "STE aus");
 });
 
-test("Diagnose schreibt einen Grund pro Entscheidung", async () => {
+test("diagnostics write one reason per decision", async () => {
   const file = join(tmpdir(), `ste-lint-guard-${process.pid}.log`);
   process.env.PI_STE_LINT_DEBUG = file;
   try {
@@ -262,7 +262,7 @@ test("Diagnose schreibt einen Grund pro Entscheidung", async () => {
   }
 });
 
-test("Diagnose nennt den Grund, wenn der Haken aus ist", async () => {
+test("diagnostics name the reason when the hook is off", async () => {
   const file = join(tmpdir(), `ste-lint-guard-off-${process.pid}.log`);
   process.env.PI_STE_LINT_DEBUG = file;
   try {
@@ -281,9 +281,9 @@ test("Diagnose nennt den Grund, wenn der Haken aus ist", async () => {
   }
 });
 
-test("ste-lint prüft weiterhin auf Zuruf", async () => {
-  // Ohne pi-tui fällt die Anzeige auf notify zurück; das ist der Weg, der hier
-  // ohne Sitzung prüfbar ist.
+test("ste-lint still checks on request", async () => {
+  // Without pi-tui the display falls back to notify; that is the path testable
+  // without a session.
   const h = harness();
   await steLint(h.pi);
   h.setBranch([entry("m7", assistantMessage(BAD_TEXT))]);
