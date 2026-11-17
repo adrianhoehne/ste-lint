@@ -2,7 +2,7 @@
  * Gate logic for the repair hook.
  *
  * No pi imports and no session state: every decision is made from the values
- * that `index.js` passes in. That keeps the eight conditions testable without a
+ * that `index.js` passes in. That keeps the seven conditions testable without a
  * running session, which is the only way to be sure the hook stays out of
  * subagent runs, tool chains and machine-readable modes.
  */
@@ -41,12 +41,16 @@ export function codeShare(text) {
  *
  * Every gate has a reason, so a debug log says why the hook stayed out.
  *
+ * There is deliberately no `context.canContinue` gate: pi reports it as false
+ * to the first handler of a boundary, because at that moment the last message is
+ * the assistant answer. The framework validates the continuation after our own
+ * draft is committed, so a rejected continuation is reported there.
+ *
  * @returns {{ allow: boolean, reason: string }}
  */
 export function evaluateGuard({
   enabled = false,
   outcome,
-  canContinue,
   mode,
   startedByUser = false,
   message,
@@ -58,7 +62,6 @@ export function evaluateGuard({
 } = {}) {
   if (!enabled) return { allow: false, reason: "disabled" };
   if (outcome !== "completed") return { allow: false, reason: `outcome:${outcome ?? "unknown"}` };
-  if (canContinue === false) return { allow: false, reason: "cannot-continue" };
   if (mode !== "tui") return { allow: false, reason: `mode:${mode ?? "unknown"}` };
   if (!startedByUser) return { allow: false, reason: "not-a-user-run" };
   if (!message) return { allow: false, reason: "no-message" };

@@ -98,7 +98,7 @@ test("codeShare zählt Zäune und Zauninhalt", () => {
   assert.equal(codeShare(""), 1);
 });
 
-const base = { enabled: true, outcome: "completed", canContinue: true, mode: "tui", startedByUser: true };
+const base = { enabled: true, outcome: "completed", mode: "tui", startedByUser: true };
 
 test("Prüfung 1: ausgeschaltet greift nicht", () => {
   assert.equal(evaluateGuard({ ...base, enabled: false, message: assistantMessage("x"), messageEntryId: "a" }).reason, "disabled");
@@ -109,32 +109,28 @@ test("Prüfung 2: Abbruch greift nicht", () => {
   assert.equal(evaluateGuard({ ...base, outcome: "error", message: assistantMessage("x"), messageEntryId: "a" }).reason, "outcome:error");
 });
 
-test("Prüfung 3: keine Fortsetzung möglich", () => {
-  assert.equal(evaluateGuard({ ...base, canContinue: false, message: assistantMessage("x"), messageEntryId: "a" }).reason, "cannot-continue");
-});
-
-test("Prüfung 4: nur im TUI", () => {
+test("Prüfung 3: nur im TUI", () => {
   for (const mode of ["json", "print", "rpc"]) {
     assert.equal(evaluateGuard({ ...base, mode, message: assistantMessage("x"), messageEntryId: "a" }).reason, `mode:${mode}`);
   }
 });
 
-test("Prüfung 5: nur Läufe aus einer Nutzereingabe", () => {
+test("Prüfung 4: nur Läufe aus einer Nutzereingabe", () => {
   assert.equal(evaluateGuard({ ...base, startedByUser: false, message: assistantMessage("x"), messageEntryId: "a" }).reason, "not-a-user-run");
 });
 
-test("Prüfung 6: Nachricht mit toolCall greift nicht", () => {
+test("Prüfung 5: Nachricht mit toolCall greift nicht", () => {
   const message = assistantMessage("text", [{ type: "toolCall", name: "bash" }]);
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "a" }).reason, "has-tool-call");
 });
 
-test("Prüfung 7: dieselbe Nachricht nur einmal", () => {
+test("Prüfung 6: dieselbe Nachricht nur einmal", () => {
   const message = assistantMessage("text");
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "a", handledIds: new Set(["a"]) }).reason, "already-handled");
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "b", repairsThisRun: 1 }).reason, "repair-limit");
 });
 
-test("Prüfung 8: überwiegend Code greift nicht", () => {
+test("Prüfung 7: überwiegend Code greift nicht", () => {
   const message = assistantMessage("```\nline1\nline2\nline3\nline4\n```");
   assert.equal(evaluateGuard({ ...base, message, messageEntryId: "a" }).reason, "mostly-code");
 });

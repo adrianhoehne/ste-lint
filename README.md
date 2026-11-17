@@ -56,7 +56,8 @@ schreibt er nichts.
 
 Der Haken sitzt auf `agent_before_settle` und greift nur, wenn die Sitzung
 wirklich eine Antwort an dich ist: kein `toolCall`, kein Subagenten-Lauf, Modus
-`tui`, überwiegend Fließtext. Sonst bleibt sie unangetastet. Begründung mit
+`tui`, überwiegend Fließtext. Sonst bleibt sie unangetastet. Sieben Prüfungen
+entscheiden das; jede hat einen Grund-Code für das Log. Begründung mit
 Bildern: [`docs/ablaeufe.md`](docs/ablaeufe.md).
 
 Standardmäßig ist der Haken **aus**. Er kostet eine zusätzliche Modellrunde pro

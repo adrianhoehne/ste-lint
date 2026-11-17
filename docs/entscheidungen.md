@@ -72,10 +72,15 @@ als Warnung zählt.
 und in Subagenten-Sitzungen. `agent_before_settle` feuert einmal am Ende eines
 Laufs und trägt `outcome`.
 
-Acht Prüfungen in `extensions/guard.js` filtern danach: eingeschaltet, `outcome =
-completed`, `canContinue` nicht `false`, Modus `tui`, Lauf aus einer
-Nutzereingabe, Nachricht ohne `toolCall`, einmal pro Nachricht, überwiegend
-Fließtext. Jede Prüfung hat einen Grund-Code, damit ein Protokoll sagt, warum der
+Sieben Prüfungen in `extensions/guard.js` filtern danach: eingeschaltet, `outcome
+= completed`, Modus `tui`, Lauf aus einer Nutzereingabe, Nachricht ohne
+`toolCall`, einmal pro Nachricht, überwiegend Fließtext.
+
+`context.canContinue` ist bewusst **keine** Prüfung: pi meldet sie dem ersten
+Handler eines Boundaries als `false`, weil in dem Moment die letzte Nachricht die
+Assistenten-Antwort ist. Wer sie prüft, verhindert jede Fortsetzung. pi prüft
+nach dem Einfügen unseres Entwurfs selbst nach und meldet eine abgelehnte
+Fortsetzung. Jede Prüfung hat einen Grund-Code, damit ein Protokoll sagt, warum der
 Haken draußen blieb.
 
 Bekannte Lücke: Es ist nicht gemessen, ob eine Fortsetzung aus dem Haken als

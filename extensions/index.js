@@ -6,7 +6,7 @@
  * connects them to pi.
  *
  * The repair hook sits on `agent_before_settle`, not `turn_end`: turn_end fires
- * on every model step, including tool chains and subagent sessions. Eight gates
+ * on every model step, including tool chains and subagent sessions. Seven gates
  * in ./guard.js decide whether a settle is really an answer to the user.
  */
 
@@ -159,7 +159,6 @@ export default async function steLint(pi) {
     const verdict = evaluateGuard({
       enabled: state.enabled,
       outcome: event.outcome,
-      canContinue: event.context?.canContinue,
       mode: ctx.mode,
       startedByUser: state.startedByUser,
       message,

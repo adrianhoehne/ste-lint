@@ -73,14 +73,14 @@ flowchart LR
 
 Zwei von drei Fällen sind falsch. Deshalb nicht `turn_end`.
 
-## D · Haken an `agent_before_settle` mit acht Prüfungen
+## D · Haken an `agent_before_settle` mit sieben Prüfungen
 
 Feuert erst, wenn das Modell aufhört, und lässt nur durch, was wirklich eine
 Antwort an dich ist.
 
 ```mermaid
 flowchart LR
-  S["Modell setzt zum<br/>Antworten an"] --> G["acht Prüfungen,<br/>alle müssen passen:<br/>1 eingeschaltet<br/>2 outcome = completed<br/>3 canContinue nicht false<br/>4 Modus = tui<br/>5 Lauf von Nutzereingabe<br/>6 kein toolCall<br/>7 einmal pro Nachricht<br/>8 überwiegend Fließtext"]
+  S["Modell setzt zum<br/>Antworten an"] --> G["sieben Prüfungen,<br/>alle müssen passen:<br/>1 eingeschaltet<br/>2 outcome = completed<br/>3 Modus = tui<br/>4 Lauf von Nutzereingabe<br/>5 kein toolCall<br/>6 einmal pro Nachricht<br/>7 überwiegend Fließtext"]
   G -->|alle grün| R["eine Reparaturrunde<br/>repairInstructions()"]
   G -.->|eine rot| P["durchlassen<br/>kein Eingriff"]
   classDef plain fill:#f1f5f9,stroke:#475569,color:#1e293b
