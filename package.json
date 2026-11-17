@@ -28,7 +28,8 @@
   "files": [
     "src",
     "lists",
-    "extensions",
+    "extensions/index.js",
+    "extensions/guard.js",
     "docs",
     "README.md",
     "LICENSE"
