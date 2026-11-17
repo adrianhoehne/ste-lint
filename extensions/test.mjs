@@ -41,10 +41,14 @@ function harness({ mode = "tui", enabled = false } = {}) {
     appendEntry: (type, data) => entries.push({ type, data }),
   };
 
+  const statuses = [];
   const ctx = {
     mode,
     sessionManager: { getBranch: () => branch, getEntries: () => branch },
-    ui: { notify: (message, type) => notices.push({ message, type }) },
+    ui: {
+      notify: (message, type) => notices.push({ message, type }),
+      setStatus: (key, text) => statuses.push({ key, text }),
+    },
   };
 
   const setBranch = (next) => {
@@ -63,7 +67,7 @@ function harness({ mode = "tui", enabled = false } = {}) {
       ...overrides,
     });
 
-  return { pi, handlers, commands, entries, notices, ctx, setBranch, run, fire, settle, enabled };
+  return { pi, handlers, commands, entries, notices, statuses, ctx, setBranch, run, fire, settle, enabled };
 }
 
 async function enabledHarness(options) {
@@ -226,6 +230,20 @@ test("Haken lässt gute Antworten in Ruhe", async () => {
   h.setBranch([entry("m6", assistantMessage(GOOD_TEXT))]);
   await h.fire("before_agent_start", { messageType: "user" });
   assert.equal(await h.settle(), undefined);
+});
+
+test("Statuszeile zeigt den Schalter und ändert sich mit ihm", async () => {
+  const h = harness();
+  await steLint(h.pi);
+  await h.fire("session_start", {});
+  assert.equal(h.statuses.at(-1).text, "STE aus");
+
+  await h.run("ste-guard", "on 80");
+  assert.equal(h.statuses.at(-1).text, "STE 80");
+  assert.equal(h.statuses.at(-1).key, "ste-lint");
+
+  await h.run("ste-guard", "off");
+  assert.equal(h.statuses.at(-1).text, "STE aus");
 });
 
 test("Diagnose schreibt einen Grund pro Entscheidung", async () => {

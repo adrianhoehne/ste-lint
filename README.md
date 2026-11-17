@@ -46,6 +46,9 @@ Ein lokales Paket wird von seinem Pfad geladen, nicht kopiert. Nach einer
 | `/ste-guard on 85` | schaltet ihn ein, Schwelle 85 (Standard 90) |
 | `/ste-guard off` | schaltet ihn aus |
 
+Der Zustand steht in der Fußzeile: `STE aus` oder `STE 85`. Fehlt der Eintrag
+ganz, ist die Erweiterung nicht geladen — dann hilft kein Schalter.
+
 Wenn der Haken nicht greift und du wissen willst, warum: `PI_STE_LINT_DEBUG=1`
 schreibt jede Entscheidung mit Grund nach `~/.cache/ste-lint/guard.log`
 (`PI_STE_LINT_DEBUG=/pfad/datei.log` für einen anderen Ort). Ohne die Variable

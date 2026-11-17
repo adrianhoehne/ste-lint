@@ -102,6 +102,15 @@ export default async function steLint(pi) {
     repairsThisRun: 0,
   };
 
+  const showStatus = (ctx) => {
+    const text = state.enabled ? `STE ${state.threshold}` : "STE aus";
+    try {
+      ctx?.ui?.setStatus?.("ste-lint", text);
+    } catch {
+      // setStatus is TUI-only; ignore elsewhere.
+    }
+  };
+
   let tui = null;
   try {
     tui = await import("@earendil-works/pi-tui");
@@ -132,6 +141,9 @@ export default async function steLint(pi) {
       return box;
     });
   }
+
+  // The footer entry is the load proof and the switch state in one place.
+  pi.on?.("session_start", async (_event, ctx) => showStatus(ctx));
 
   // Remember what started the run: only a typed prompt counts as a user run.
   pi.on?.("before_agent_start", async (event) => {
@@ -237,6 +249,7 @@ export default async function steLint(pi) {
 
       if (!first) {
         const status = state.enabled ? `an, Schwelle ${state.threshold}` : "aus";
+        showStatus(ctx);
         ctx.ui.notify(`ste-guard: ${status}`, "info");
         return;
       }
@@ -249,12 +262,14 @@ export default async function steLint(pi) {
           state.repairsThisRun = 0;
         }
         const status = state.enabled ? `an, Schwelle ${state.threshold}` : "aus";
+        showStatus(ctx);
         ctx.ui.notify(`ste-guard: ${status}`, "info");
         return;
       }
       if (Number.isFinite(Number(first)) && Number(first) > 0 && Number(first) <= 100) {
         state.threshold = Number(first);
         state.enabled = true;
+        showStatus(ctx);
         ctx.ui.notify(`ste-guard: an, Schwelle ${state.threshold}`, "info");
         return;
       }
