@@ -71,6 +71,9 @@ Threshold default 90, set with `/ste-guard on 85`. One repair per answer: the
 continuation itself is not treated as a user run, so gate 6 is the loop stop.
 Every decision is logged with a reason code when `PI_STE_LINT_DEBUG` is set.
 
+The round is visible: notification with score and fix count, a banner in the
+transcript, and `STE 90 · repairing` in the footer until the new answer arrives.
+
 ## D · Where the hook sits in one run
 
 One answer, three model steps. Only the last one is an answer to you.

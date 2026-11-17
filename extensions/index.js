@@ -10,9 +10,10 @@
  * in ./guard.js decide whether a settle is really an answer to the user.
  */
 
-import { appendFileSync, mkdirSync } from "node:fs";
+import { appendFileSync, mkdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 import { lint, repairInstructions } from "../src/index.js";
 import { assistantText, evaluateGuard } from "./guard.js";
@@ -24,6 +25,29 @@ const MAX_FINDINGS = 40;
  * ~/.cache/ste-lint/guard.log, or set it to a file path. Silent by default:
  * writing during a session would land in the running UI.
  */
+/**
+ * pi supplies @earendil-works/pi-tui to extensions, but a package installed from
+ * a path does not resolve it by name. Fall back to the managed install layout,
+ * which pi exposes through PI_MANAGED_INSTALL_ROOT. Without components both
+ * commands still work through notify.
+ */
+async function loadTui() {
+  try {
+    return await import("@earendil-works/pi-tui");
+  } catch {
+    // fall through to the install layout
+  }
+  const root = process.env.PI_MANAGED_INSTALL_ROOT;
+  if (!root) return null;
+  try {
+    const version = readFileSync(join(root, "current-version"), "utf8").trim();
+    const file = join(root, "releases", version, "node_modules", "@earendil-works", "pi-tui", "dist", "index.js");
+    return await import(pathToFileURL(file).href);
+  } catch {
+    return null;
+  }
+}
+
 function debugLog(entry) {
   const target = process.env.PI_STE_LINT_DEBUG;
   if (!target) return;
@@ -100,10 +124,30 @@ export default async function steLint(pi) {
     startedByUser: false,
     handledIds: new Set(),
     repairsThisRun: 0,
+    pendingRepair: null,
   };
 
-  const showStatus = (ctx) => {
-    const text = state.enabled ? `STE ${state.threshold}` : "STE aus";
+  // After the repaired answer arrives, report what the round achieved.
+  const reportRepairResult = (ctx, message) => {
+    const pending = state.pendingRepair;
+    state.pendingRepair = null;
+    showStatus(ctx);
+    if (!pending) return;
+    const text = assistantText(message);
+    if (!text) return;
+    const after = lint(text).score;
+    const shown = after === null ? "?" : after;
+    debugLog({ event: "repair-result", before: pending.before, after });
+    try {
+      ctx?.ui?.notify?.(`STE: repaired ${pending.before} → ${shown}`, "info");
+    } catch {
+      // notify is UI-only.
+    }
+  };
+
+  const showStatus = (ctx, suffix) => {
+    const base = state.enabled ? `STE ${state.threshold}` : "STE off";
+    const text = suffix ? `${base} · ${suffix}` : base;
     try {
       ctx?.ui?.setStatus?.("ste-lint", text);
     } catch {
@@ -111,14 +155,22 @@ export default async function steLint(pi) {
     }
   };
 
-  let tui = null;
-  try {
-    tui = await import("@earendil-works/pi-tui");
-  } catch {
-    tui = null; // no terminal components: both commands still work through notify
-  }
+  const tui = await loadTui();
 
   if (tui?.Box && tui?.Text) {
+    pi.registerEntryRenderer("ste-guard", (entry, { expanded }, theme) => {
+      const data = entry.data ?? {};
+      const box = new tui.Box(1, 1, (text) => theme.bg("customMessageBg", text));
+      const head = `${theme.fg("accent", "STE repair round")}${theme.fg("dim", ` — ${data.score ?? "?"}/100, ${data.fixes?.length ?? 0} fixes`)}`;
+      box.addChild(new tui.Text(head, 0, 0));
+      const fixes = data.fixes ?? [];
+      for (const fix of expanded ? fixes : fixes.slice(0, 2)) box.addChild(new tui.Text(theme.fg("dim", `- ${fix}`), 0, 0));
+      if (!expanded && fixes.length > 2) {
+        box.addChild(new tui.Text(theme.fg("dim", `… ${fixes.length - 2} more (expand the entry)`), 0, 0));
+      }
+      return box;
+    });
+
     pi.registerEntryRenderer("ste-lint", (entry, { expanded }, theme) => {
       const data = entry.data ?? {};
       const box = new tui.Box(1, 1, (text) => theme.bg("customMessageBg", text));
@@ -169,6 +221,7 @@ export default async function steLint(pi) {
     });
     if (!verdict.allow) {
       debugLog({ event: "settle", decision: "skip", reason: verdict.reason, enabled: state.enabled, mode: ctx.mode, startedByUser: state.startedByUser });
+      if (verdict.reason === "repair-limit") reportRepairResult(ctx, message);
       return undefined;
     }
 
@@ -185,20 +238,31 @@ export default async function steLint(pi) {
     debugLog({ event: "settle", decision: "repair", score: result.score, threshold: state.threshold, language: result.language, fixes: fixes.length });
     state.handledIds.add(entryId);
     state.repairsThisRun += 1;
+    state.pendingRepair = { before: result.score, entryId };
+    showStatus(ctx, "repairing");
+    try {
+      ctx?.ui?.notify?.(`STE: repair round — ${result.score}/100, ${fixes.length} fixes`, "info");
+    } catch {
+      // notify is UI-only.
+    }
+    // The banner goes through appendEntry: entries returned as boundary drafts
+    // are committed but not drawn with a renderer in pi 1.3.0.
+    pi.appendEntry?.("ste-guard", {
+      score: result.score,
+      threshold: state.threshold,
+      language: result.language,
+      fixes,
+    });
+
     return {
       continue: true,
       entries: [
         {
           type: "custom_message",
-          customType: "ste-guard",
+          customType: "ste-guard-prompt",
           content: repairPrompt(result, fixes),
-          display: true,
-          details: {
-            score: result.score,
-            grade: result.grade,
-            language: result.language,
-            fixes,
-          },
+          display: false,
+          details: { score: result.score, grade: result.grade, language: result.language },
         },
       ],
     };

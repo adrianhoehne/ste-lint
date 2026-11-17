@@ -23,7 +23,7 @@ pi install --local /home/adrian/ste-lint  # current project only
 From the repository, pinned to a tag:
 
 ```bash
-pi install git:github.com/adrianhoehne/ste-lint@v0.1.4
+pi install git:github.com/adrianhoehne/ste-lint@v0.1.5
 ```
 
 Try it once without saving anything:
@@ -47,6 +47,11 @@ in the running session is enough.
 
 The footer shows the state: `STE off` or `STE 85`. If the entry is missing, the
 extension did not load.
+
+When it repairs, you see three things: a notification with the score and the
+number of fixes, a banner in the transcript (`STE repair round — 36/100, 8 fixes`,
+expandable), and the footer `STE 90 · repairing` until the new answer arrives.
+Afterwards it reports the result: `STE: repaired 36 → 94`.
 
 The hook sits on `agent_before_settle` and only acts on an answer to you: no
 `toolCall`, no subagent run, mode `tui`, mostly prose. Seven gates decide this;

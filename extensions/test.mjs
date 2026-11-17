@@ -10,7 +10,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -186,10 +186,19 @@ test("the hook repairs a bad answer once", async () => {
   const result = await h.settle();
   assert.equal(result.continue, true);
   assert.equal(result.entries.length, 1);
-  assert.equal(result.entries[0].type, "custom_message");
-  assert.equal(result.entries[0].customType, "ste-guard");
-  assert.match(result.entries[0].content, /Score|score/);
-  assert.ok(result.entries[0].details.fixes.length > 0);
+
+  // The prompt reaches the model but stays out of the transcript.
+  const prompt = result.entries[0];
+  assert.equal(prompt.type, "custom_message");
+  assert.equal(prompt.customType, "ste-guard-prompt");
+  assert.equal(prompt.display, false);
+  assert.match(prompt.content, /Score|score/);
+
+  // The banner is a session entry, drawn by the entry renderer.
+  const banner = h.entries.at(-1);
+  assert.equal(banner.type, "ste-guard");
+  assert.ok(banner.data.fixes.length > 0);
+  assert.equal(typeof banner.data.score, "number");
 
   const again = await h.settle();
   assert.equal(again, undefined);
@@ -232,14 +241,29 @@ test("the footer shows the switch and follows it", async () => {
   const h = harness();
   await steLint(h.pi);
   await h.fire("session_start", {});
-  assert.equal(h.statuses.at(-1).text, "STE aus");
+  assert.equal(h.statuses.at(-1).text, "STE off");
 
   await h.run("ste-guard", "on 80");
   assert.equal(h.statuses.at(-1).text, "STE 80");
   assert.equal(h.statuses.at(-1).key, "ste-lint");
 
   await h.run("ste-guard", "off");
-  assert.equal(h.statuses.at(-1).text, "STE aus");
+  assert.equal(h.statuses.at(-1).text, "STE off");
+});
+
+test("a repair round is announced and its result reported", async () => {
+  const h = await enabledHarness();
+  h.setBranch([entry("r1", assistantMessage(BAD_TEXT))]);
+  await h.fire("before_agent_start", { messageType: "user" });
+
+  await h.settle();
+  assert.match(h.notices.at(-1).message, /repair round — \d+\/100, \d+ fixes/);
+  assert.equal(h.statuses.at(-1).text, "STE 90 · repairing");
+
+  h.setBranch([entry("r1", assistantMessage(BAD_TEXT)), entry("r2", assistantMessage(GOOD_TEXT))]);
+  await h.settle();
+  assert.match(h.notices.at(-1).message, /STE: repaired \d+ → \d+/);
+  assert.equal(h.statuses.at(-1).text, "STE 90");
 });
 
 test("diagnostics write one reason per decision", async () => {
@@ -281,15 +305,41 @@ test("diagnostics name the reason when the hook is off", async () => {
   }
 });
 
-test("ste-lint still checks on request", async () => {
-  // Without pi-tui the display falls back to notify; that is the path testable
-  // without a session.
+test("ste-lint falls back to notify without pi-tui", async () => {
+  const saved = process.env.PI_MANAGED_INSTALL_ROOT;
+  delete process.env.PI_MANAGED_INSTALL_ROOT;
+  try {
+    const h = harness();
+    await steLint(h.pi);
+    h.setBranch([entry("m7", assistantMessage(BAD_TEXT))]);
+    await h.run("ste-lint", "en");
+    const notice = h.notices.at(-1);
+    assert.match(notice.message, /STE \d+\/100/);
+    assert.match(notice.message, /"Obviously"/);
+    assert.equal(notice.type, "warning");
+    assert.equal(h.entries.length, 0);
+  } finally {
+    if (saved !== undefined) process.env.PI_MANAGED_INSTALL_ROOT = saved;
+  }
+});
+
+test("ste-lint draws an entry when the components resolve", async () => {
+  const root = process.env.PI_MANAGED_INSTALL_ROOT;
+  const version = root ? readFileSync(join(root, "current-version"), "utf8").trim() : null;
+  const components = version
+    ? join(root, "releases", version, "node_modules", "@earendil-works", "pi-tui", "dist", "index.js")
+    : null;
+  if (!components || !existsSync(components)) {
+    assert.ok(true, "no managed install on this machine");
+    return;
+  }
+
   const h = harness();
   await steLint(h.pi);
-  h.setBranch([entry("m7", assistantMessage(BAD_TEXT))]);
+  h.setBranch([entry("m10", assistantMessage(BAD_TEXT))]);
   await h.run("ste-lint", "en");
-  const notice = h.notices.at(-1);
-  assert.match(notice.message, /STE \d+\/100/);
-  assert.match(notice.message, /"Obviously"/);
-  assert.equal(notice.type, "warning");
+  const report = h.entries.at(-1);
+  assert.equal(report.type, "ste-lint");
+  assert.ok(report.data.findings.length > 0);
+  assert.equal(h.notices.length, 0);
 });
