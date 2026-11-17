@@ -23,7 +23,7 @@ pi install --local /home/adrian/ste-lint  # current project only
 From the repository, pinned to a tag:
 
 ```bash
-pi install git:github.com/adrianhoehne/ste-lint@v0.1.3
+pi install git:github.com/adrianhoehne/ste-lint@v0.1.4
 ```
 
 Try it once without saving anything:
