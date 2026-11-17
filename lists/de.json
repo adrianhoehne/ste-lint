@@ -1,0 +1,193 @@
+{
+  "code": "de",
+  "name": "Deutsch",
+  "limits": { "procedural": 20, "descriptive": 25, "paragraph": 6 },
+
+  "detect": {
+    "words": ["der", "die", "das", "und", "ist", "nicht", "wird", "mit", "für", "sie", "den", "dem", "ein", "eine", "zu", "auf", "des", "im"],
+    "chars": ["ä", "ö", "ü", "ß"]
+  },
+
+  "inflection": "de",
+
+  "procedural": {
+    "imperative": [
+      "achten", "aktivieren", "aktiviere", "anheben", "anschließen", "aufdrehen", "ausbauen",
+      "ausschalten", "bauen", "befeuchten", "befestige", "befestigen", "beginne", "beenden",
+      "beende", "benutzen", "beseitigen", "bohre", "bohren", "brauchen", "drücken", "drücke",
+      "drehen", "drehe", "einbauen", "einschalten", "entferne", "entfernen", "entleeren",
+      "entlüften", "entnehmen", "erhitzen", "erhitze", "ersetze", "ersetzen", "füllen",
+      "fülle", "gieße", "gießen", "geben", "gib", "halten", "halte", "hebe", "heben",
+      "installiere", "installieren", "klappe", "klicke", "klicken", "kühlen", "kühle",
+      "lade", "laden", "legen", "lege", "lesen", "lies", "löse", "lösen", "löschen",
+      "markiere", "markieren", "messen", "messe", "mische", "mischen", "montiere",
+      "montieren", "nimm", "nehmen", "öffne", "öffnen", "prüfe", "prüfen", "pumpe",
+      "pumpen", "reinigen", "reinige", "schiebe", "schieben", "schließe", "schließen",
+      "schneide", "schneiden", "schraube", "schrauben", "schreibe", "schreiben", "setze",
+      "setzen", "speichere", "speichern", "spüle", "spülen", "starte", "starten", "stecke",
+      "stecken", "stelle", "stellen", "tippe", "tippen", "trage", "tragen", "trenne",
+      "trennen", "trockne", "trocknen", "überprüfe", "überprüfen", "verbinde", "verbinden",
+      "verwende", "verwenden", "wähle", "wählen", "warten", "warte", "wechseln", "wechsle",
+      "wiederhole", "wiederholen", "wischen", "wische", "ziehen", "ziehe", "zusammenbauen"
+    ],
+    "negativePrefixes": ["nicht", "nie", "niemals", "niemals nicht"],
+    "imperativeSuffixes": ["en", "e"],
+    "pronouns": ["sie", "du", "ihr", "euch"],
+    "connectives": ["und", "dann", "sowie", ";"],
+    "connectiveSkip": ["dann", "auch", "anschließend", "danach"]
+  },
+
+  "passive": {
+    "auxiliaries": [
+      "wird", "werden", "wurde", "wurden", "worden", "ist", "sind", "war", "waren",
+      "bin", "bist", "seid", "sein", "bleibt", "bleiben"
+    ],
+    "stateAuxiliaries": ["ist", "sind", "war", "waren", "bin", "bist", "seid", "sein", "bleibt", "bleiben"],
+    "skipWords": [
+      "nicht", "auch", "nun", "jetzt", "noch", "schon", "nur", "oft", "nie", "immer",
+      "bereits", "dann", "sofort", "schnell", "langsam", "vorsichtig", "anschließend", "und"
+    ],
+    "participlePattern": "^(?:[a-zäöüß]{0,8})?ge[a-zäöüß]{2,}(?:t|en)$",
+    "participleSuffixes": ["iert"],
+    "participlePrefixes": ["be", "ver", "er", "ent", "zer", "emp", "miss", "über", "unter"],
+    "irregularParticiples": ["worden", "bekommen", "verloren", "vergessen", "verstanden", "erhalten"],
+    "stateAdjectives": [
+      "geöffnet", "geschlossen", "beendet", "gestartet", "aktiviert", "deaktiviert",
+      "verbunden", "getrennt", "installiert", "montiert", "befestigt", "gereinigt"
+    ],
+    "notParticiples": [],
+    "maxGap": 4
+  },
+
+  "abbreviations": [
+    "z.", "bzw.", "usw.", "etc.", "ca.", "nr.", "abb.", "abs.", "dr.", "prof.", "max.",
+    "min.", "evtl.", "ggf.", "inkl.", "zzgl.", "sog.", "vgl.", "bspw.", "mio.", "mrd."
+  ],
+
+  "labels": { "warning": ["ACHTUNG"], "caution": ["VORSICHT"], "note": ["HINWEIS"], "requireUppercase": true },
+
+  "unapproved": {
+    "benutzen": "verwenden", "benutze": "verwenden", "benutzung": "verwendung",
+    "nutzen": "verwenden", "nutzung": "verwendung", "applikation": "anwendung",
+    "gewährleisten": "sicherstellen", "gewährleistet": "sicherstellt",
+    "durchführen": "machen", "durchführung": "ablauf", "vornehmen": "machen",
+    "erfolgen": "machen", "erfolgt": "macht", "initiieren": "starten",
+    "terminieren": "beenden", "aufgrund": "wegen", "mittels": "mit",
+    "hinsichtlich": "zu", "bezüglich": "zu", "diesbezüglich": "dazu",
+    "sämtliche": "alle", "zahlreiche": "viele", "diverse": "verschiedene",
+    "etliche": "einige", "gegebenenfalls": "wenn nötig", "möglicherweise": "vielleicht",
+    "sofern": "wenn", "selbige": "diese", "jene": "diese", "welche": "die",
+    "sollte": "muss", "sollten": "müssen", "müsste": "muss", "dürfte": "kann",
+    "funktionalität": "funktion", "komponente": "teil", "parametrisierung": "einstellung",
+    "vorrichtung": "gerät", "aggregat": "gerät", "anzeigeeinheit": "anzeige",
+    "betätigen": "drücken", "betätigung": "druck", "positionieren": "setzen",
+    "applizieren": "auftragen", "eliminieren": "entfernen", "modifizieren": "ändern",
+    "implementieren": "einbauen", "realisieren": "machen", "visualisieren": "anzeigen",
+    "kommunizieren": "sprechen", "informieren": "sagen", "kontaktieren": "anrufen",
+    "utilisieren": "verwenden", "assistieren": "helfen", "verifizieren": "prüfen",
+    "validieren": "prüfen", "determinieren": "feststellen", "sukzessive": "schrittweise",
+    "zusätzlich": "außerdem", "zahlreicher": "vieler", "hinreichend": "genug",
+    "unzureichend": "nicht genug", "optimal": "best", "adäquat": "passend",
+    "jedoch": "aber", "dennoch": "trotzdem", "folglich": "also", "demnach": "also"
+  },
+
+  "phrases": {
+    "aufgrund der tatsache, dass": "weil",
+    "aus dem grund, dass": "weil",
+    "zum zwecke": "um",
+    "zu dem zwecke": "um",
+    "in der lage sein": "können",
+    "in der lage sind": "können",
+    "unter zuhilfenahme von": "mit",
+    "unter verwendung von": "mit",
+    "mittels einer": "mit einer",
+    "eine reihe von": "einige",
+    "eine vielzahl von": "viele",
+    "eine anzahl von": "einige",
+    "im rahmen von": "bei",
+    "in bezug auf": "zu",
+    "im hinblick auf": "zu",
+    "zum jetzigen zeitpunkt": "jetzt",
+    "in diesem zusammenhang": "hier",
+    "es ist wichtig zu beachten, dass": "",
+    "es ist zu beachten, dass": "",
+    "vor der benutzung": "vor dem gebrauch",
+    "vor der verwendung": "vor dem gebrauch",
+    "nach der verwendung": "nach dem gebrauch",
+    "des weiteren": "außerdem",
+    "im folgenden": "hier",
+    "wie folgt": "so",
+    "in einem ersten schritt": "zuerst"
+  },
+
+  "fluff": [
+    "tolle frage", "gute frage", "gerne", "natürlich", "selbstverständlich",
+    "im grunde", "eigentlich", "quasi", "sozusagen", "im endeffekt", "letztendlich",
+    "kurz gesagt", "zusammenfassend", "abschließend", "ich hoffe das hilft",
+    "hoffe das hilft", "melde dich", "lass es mich wissen", "zögern sie nicht",
+    "kein problem", "überhaupt kein problem", "wie sie sehen", "es ist wichtig zu beachten",
+    "sehr", "wirklich", "einfach", "grundsätzlich", "umfassend", "robust", "nahtlos",
+    "bahnbrechend", "ganzheitlich", "spielend", "mühelos", "im handumdrehen",
+    "nicht zuletzt", "darüber hinaus", "des weiteren", "letzten endes",
+    "auf jeden fall", "in jedem fall", "wie bereits erwähnt", "wie gesagt"
+  ],
+
+  "drift": [
+    ["motor", "maschine", "antrieb"],
+    ["auto", "fahrzeug", "wagen", "pkw"],
+    ["kabel", "leitung", "schnur"],
+    ["schraube", "bolzen"],
+    ["fehler", "defekt", "störung"],
+    ["ordner", "verzeichnis"],
+    ["einstellung", "option", "parameter"],
+    ["benutzer", "anwender", "nutzer"],
+    ["funktion", "methode", "routine"],
+    ["starten", "beginnen", "anfangen"],
+    ["beenden", "stoppen", "abbrechen"],
+    ["prüfen", "kontrollieren", "überprüfen"],
+    ["entfernen", "demontieren", "abnehmen"],
+    ["öffnen", "aufmachen"],
+    ["anzeige", "display", "bildschirm"],
+    ["taste", "knopf"]
+  ],
+
+  "messages": {
+    "kinds": { "procedural": "Anweisung", "descriptive": "Beschreibung" },
+    "LENGTH": "{words} Wörter in einem Satz ({kind}). Erlaubt sind höchstens {limit}.",
+    "MULTI_ACTION": "Mehr als eine Anweisung (\"{term}\"). Schreiben Sie eine Anweisung in jeden Schritt.",
+    "STEP_SENTENCES": "{count} Sätze in einem Schritt. Schreiben Sie eine Anweisung in jeden Schritt.",
+    "PASSIVE": "Passiv (\"{term}\"). Schreiben Sie in der aktiven Form.",
+    "PASSIVE_STATE": "Passivform (\"{term}\"). Schreiben Sie in der aktiven Form, zum Beispiel als Anweisung.",
+    "ING": "Der Satz beginnt mit \"{term}\". Schreiben Sie eine Anweisung.",
+    "WORD": "\"{term}\" ist nicht zugelassen. Schreiben Sie \"{suggestion}\".",
+    "PHRASE": "\"{term}\" ist nicht zugelassen. Schreiben Sie \"{suggestion}\".",
+    "FLUFF": "\"{term}\" ist Füllwort. Löschen Sie es.",
+    "DRIFT": "Sie verwenden {names} für dieselbe Sache. Nehmen Sie nur \"{keep}\".",
+    "DRIFT_TERM": "\"{term}\" ist ein anderer Name für \"{keep}\". Schreiben Sie \"{keep}\".",
+    "PARAGRAPH": "Der Absatz hat {count} Sätze. Erlaubt sind höchstens {limit}.",
+    "UNTERMINATED_CODE": "Der Codeblock ab Zeile {line} ist nicht geschlossen. Der Rest des Textes wird nicht geprüft.",
+    "LABEL_CASE": "Schreiben Sie \"{label}:\" in Großbuchstaben.",
+    "repair": {
+      "LENGTH": "Der Satz \"{head}\" hat {words} Wörter. Kürzen Sie ihn auf höchstens {limit} Wörter.",
+      "MULTI_ACTION": "Der Satz \"{head}\" enthält mehr als eine Anweisung. Schreiben Sie eine Anweisung in jeden Schritt.",
+      "STEP_SENTENCES": "Ein Schritt hat {count} Sätze. Schreiben Sie eine Anweisung in jeden Schritt.",
+      "PASSIVE": "Der Satz \"{head}\" steht im Passiv. Schreiben Sie in der aktiven Form.",
+      "PASSIVE_STATE": "Der Satz \"{head}\" steht im Passiv. Schreiben Sie in der aktiven Form.",
+      "ING": "Der Satz \"{head}\" beginnt mit einer -ing-Form. Schreiben Sie eine Anweisung.",
+      "WORD": "Ersetzen Sie \"{term}\" durch \"{suggestion}\".",
+      "PHRASE": "Ersetzen Sie \"{term}\" durch \"{suggestion}\".",
+      "FLUFF": "Löschen Sie das Füllwort \"{term}\".",
+      "DRIFT": "Sie verwenden {names} für dieselbe Sache. Nehmen Sie nur \"{keep}\".",
+      "PARAGRAPH": "Ein Absatz hat {count} Sätze. Schreiben Sie höchstens 6 Sätze.",
+      "UNTERMINATED_CODE": "Schließen Sie den Codeblock ab Zeile {line}.",
+      "LABEL_CASE": "Schreiben Sie \"{label}:\" in Großbuchstaben."
+    },
+    "grades": {
+      "ready": "STE-gerecht",
+      "close": "Fast",
+      "work": "Überarbeiten",
+      "not": "Nicht STE",
+      "empty": "Leerer Text"
+    }
+  }
+}

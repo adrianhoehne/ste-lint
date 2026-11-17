@@ -1,0 +1,205 @@
+{
+  "code": "en",
+  "name": "English",
+  "limits": { "procedural": 20, "descriptive": 25, "paragraph": 6 },
+
+  "detect": {
+    "words": ["the", "and", "of", "to", "is", "that", "it", "with", "you", "for", "this", "are", "not", "from", "have", "will"],
+    "chars": []
+  },
+
+  "inflection": "en",
+
+  "procedural": {
+    "imperative": [
+      "add", "adjust", "apply", "attach", "avoid", "be", "blow", "bolt", "calibrate", "calculate",
+      "change", "charge", "check", "choose", "clean", "click", "close", "compare", "configure",
+      "connect", "copy", "cover", "create", "cut", "delete", "detach", "disable", "disconnect",
+      "divide", "do", "download", "drain", "dry", "enable", "enter", "examine", "fill", "find",
+      "fit", "get", "give", "go", "grease", "hold", "inflate", "insert", "install", "keep",
+      "let", "lift", "load", "lock", "look", "loosen", "lower", "make", "mark", "measure",
+      "mix", "monitor", "mount", "move", "multiply", "note", "open", "plug", "pour", "press",
+      "pull", "pump", "push", "put", "raise", "read", "record", "refer", "release", "remove",
+      "repeat", "replace", "reset", "restart", "return", "rotate", "run", "save", "select",
+      "send", "set", "slide", "start", "stop", "switch", "take", "tap", "test", "tighten",
+      "touch", "try", "turn", "type", "unplug", "unscrew", "update", "use", "wait", "wash",
+      "wear", "wipe", "write"
+    ],
+    "negativePrefixes": ["do not", "don't", "don’t", "never", "always"],
+    "connectives": ["and", "then", ";"],
+    "connectiveSkip": ["then", "also", "now"]
+  },
+
+  "passive": {
+    "auxiliaries": ["am", "is", "are", "was", "were", "be", "been", "being", "get", "gets", "got", "gotten"],
+    "stateAuxiliaries": ["am", "is", "are", "was", "were", "be", "been"],
+    "skipWords": ["not", "also", "now", "then", "still", "already", "only", "often", "never", "always", "and"],
+    "adverbPattern": "^[a-z]+ly$",
+    "participleSuffixes": ["ed"],
+    "irregularParticiples": [
+      "arisen", "awoken", "beaten", "become", "begun", "bent", "bet", "bidden", "bitten",
+      "bled", "blown", "born", "borne", "bound", "bred", "broken", "brought", "built",
+      "burnt", "burst", "bought", "caught", "chosen", "clung", "come", "cost", "crept",
+      "cut", "dealt", "done", "drawn", "dreamt", "driven", "drunk", "eaten", "fallen",
+      "fed", "felt", "fought", "found", "flown", "forbidden", "forecast", "forgotten",
+      "forgiven", "frozen", "given", "gone", "ground", "grown", "heard", "held", "hidden",
+      "hit", "hung", "hurt", "kept", "kneel", "knelt", "knitted", "known", "laid", "led",
+      "leant", "leapt", "learnt", "left", "lent", "let", "lain", "lit", "lost", "made",
+      "meant", "met", "mown", "paid", "put", "read", "rent", "rid", "risen", "rung",
+      "said", "sawn", "seen", "sold", "sent", "set", "sewn", "shaken", "shaved", "shed",
+      "shone", "shot", "shown", "shrunk", "shut", "slept", "slid", "slung", "smelt",
+      "sown", "spat", "sped", "spelt", "spent", "spilt", "spun", "spat", "split",
+      "spoilt", "spread", "sprung", "stood", "stolen", "stuck", "stung", "stunk",
+      "struck", "strung", "striven", "sworn", "swept", "swollen", "swum", "swung",
+      "taken", "taught", "torn", "told", "thought", "thriven", "thrown", "thrust",
+      "undergone", "understood", "undertaken", "upset", "woken", "worn", "woven",
+      "wept", "wet", "won", "wound", "written"
+    ],
+    "stateAdjectives": [
+      "interested", "excited", "tired", "concerned", "supposed", "complicated",
+      "sophisticated", "detailed", "limited", "advanced", "closed", "opened",
+      "mounted", "fixed", "sealed", "secured"
+    ],
+    "notParticiples": ["red", "speed", "feed", "seed", "bed", "shed", "hundred", "indeed", "bread"],
+    "maxGap": 4
+  },
+
+  "ing": {
+    "minLength": 5,
+    "exceptions": [
+      "bearing", "bearings", "cabling", "casing", "ceiling", "ceiling", "coating",
+      "cooling", "during", "evening", "fitting", "fittings", "gasket", "heating",
+      "housing", "lighting", "lining", "morning", "mounting", "opening", "packing",
+      "piping", "rating", "ratings", "reading", "readings", "ring", "sealing",
+      "setting", "settings", "spring", "string", "strings", "thing", "things",
+      "tubing", "warning", "warnings", "wing", "wiring", "string"
+    ]
+  },
+
+  "abbreviations": [
+    "e.g.", "i.e.", "etc.", "vs.", "fig.", "no.", "dr.", "mr.", "mrs.", "ms.", "approx.", "st."
+  ],
+
+  "labels": { "warning": ["WARNING"], "caution": ["CAUTION"], "note": ["NOTE"], "requireUppercase": true },
+
+  "unapproved": {
+    "acquire": "get", "ascertain": "find out", "apprise": "tell", "assess": "check",
+    "comprise": "include", "constitute": "is", "expedite": "speed up", "finalize": "finish",
+    "finalization": "finish", "implement": "do", "implementation": "do", "necessitate": "need",
+    "permit": "let", "procure": "get", "procurement": "getting", "promulgate": "publish",
+    "provide": "give", "render": "make", "retain": "keep", "substantiate": "prove",
+    "transmit": "send", "undertake": "do", "allocate": "set aside", "anticipate": "expect",
+    "designate": "name", "formulate": "write", "generate": "make", "notify": "tell",
+    "peruse": "read", "proceed": "go", "relocate": "move", "replenish": "fill",
+    "scrutinize": "check", "secure": "get", "supplement": "add", "conceal": "hide",
+    "conclude": "end", "exhibit": "show", "opt": "choose", "prescribe": "set",
+    "remunerate": "pay", "reside": "be", "requisition": "ask for", "evince": "show",
+    "manifest": "show", "occasion": "cause", "inundate": "flood", "inaugurate": "start",
+    "effectuate": "do", "afford": "give", "converse": "talk", "should": "must",
+    "shall": "must", "may": "can", "might": "can", "ought": "must",
+    "approximately": "about", "it is necessary to": "you must", "in the event of": "if"
+  },
+
+  "phrases": {
+    "as a result of": "because",
+    "by means of": "with",
+    "for the purpose of": "to",
+    "in view of the fact that": "because",
+    "on account of": "because",
+    "in the absence of": "without",
+    "in the course of": "during",
+    "in the vicinity of": "near",
+    "on a daily basis": "each day",
+    "at the present time": "now",
+    "in the near future": "soon",
+    "has the capability to": "can",
+    "is capable of": "can",
+    "give consideration to": "think about",
+    "make a decision": "decide",
+    "in conjunction with": "with",
+    "with the exception of": "except",
+    "not later than": "before",
+    "in excess of": "more than",
+    "the majority of": "most",
+    "in the region of": "about",
+    "carry out": "do",
+    "give help to": "help"
+  },
+
+  "fluff": [
+    "first of all", "last but not least", "at the end of the day", "for what it's worth",
+    "let's face it", "to be honest", "believe it or not", "obviously", "undoubtedly",
+    "unquestionably", "generally speaking", "in a nutshell", "in short", "to put it simply",
+    "as a matter of fact", "in any case", "for the most part", "by and large",
+    "more or less", "in essence", "at first glance", "it goes without saying",
+    "rest assured", "without a doubt", "let me explain", "walk you through",
+    "here's the thing", "the bottom line", "long story short", "cutting-edge",
+    "state-of-the-art", "world-class", "best-in-class", "next-generation",
+    "revolutionary", "powerful", "amazing", "awesome", "fantastic", "incredible",
+    "tons of", "a lot of", "pretty much", "kind of", "sort of", "you know",
+    "for sure", "and so on"
+  ],
+
+  "drift": [
+    ["cover", "cap", "lid"],
+    ["lamp", "light"],
+    ["gasket", "seal"],
+    ["spanner", "wrench"],
+    ["socket", "receptacle"],
+    ["plug", "connector"],
+    ["terminal", "post"],
+    ["housing", "casing"],
+    ["shaft", "spindle"],
+    ["tank", "reservoir"],
+    ["filter", "strainer"],
+    ["bracket", "holder"],
+    ["display", "screen"],
+    ["gauge", "meter"],
+    ["battery", "accumulator"],
+    ["grease", "lubricant"],
+    ["manual", "handbook", "guide"],
+    ["fault", "issue", "problem"],
+    ["hole", "opening"],
+    ["push button", "button"]
+  ],
+
+  "messages": {
+    "kinds": { "procedural": "procedural", "descriptive": "descriptive" },
+    "LENGTH": "{words} words in a {kind} sentence. The maximum is {limit}.",
+    "MULTI_ACTION": "More than one instruction (\"{term}\"). Write one instruction in each step.",
+    "STEP_SENTENCES": "{count} sentences in one step. Write one instruction in each step.",
+    "PASSIVE": "Passive voice (\"{term}\"). Use the active voice.",
+    "PASSIVE_STATE": "Passive form (\"{term}\"). Use the active voice, for example an instruction.",
+    "ING": "The sentence starts with \"{term}\". Write the instruction in the command form.",
+    "WORD": "\"{term}\" is not approved. Use \"{suggestion}\".",
+    "PHRASE": "\"{term}\" is not approved. Use \"{suggestion}\".",
+    "FLUFF": "\"{term}\" is filler. Delete it.",
+    "DRIFT": "You use {names} for the same thing. Use only \"{keep}\".",
+    "DRIFT_TERM": "\"{term}\" is another name for \"{keep}\". Use \"{keep}\".",
+    "PARAGRAPH": "The paragraph has {count} sentences. The maximum is {limit}.",
+    "UNTERMINATED_CODE": "The code block at line {line} is not closed. The rest of the text is not checked.",
+    "LABEL_CASE": "Write \"{label}:\" in uppercase letters.",
+    "repair": {
+      "LENGTH": "The sentence \"{head}\" has {words} words. Make it {limit} words or less.",
+      "MULTI_ACTION": "The sentence \"{head}\" has more than one instruction. Write one instruction in each step.",
+      "STEP_SENTENCES": "A step has {count} sentences. Write one instruction in each step.",
+      "PASSIVE": "The sentence \"{head}\" uses the passive voice. Use the active voice.",
+      "PASSIVE_STATE": "The sentence \"{head}\" uses the passive voice. Use the active voice.",
+      "ING": "The sentence \"{head}\" starts with an -ing form. Use the command form.",
+      "WORD": "Replace \"{term}\" with \"{suggestion}\".",
+      "PHRASE": "Replace \"{term}\" with \"{suggestion}\".",
+      "FLUFF": "Delete the filler \"{term}\".",
+      "DRIFT": "You use {names} for the same thing. Use only \"{keep}\".",
+      "PARAGRAPH": "A paragraph has {count} sentences. Use 6 sentences or less.",
+      "UNTERMINATED_CODE": "Close the code block at line {line}.",
+      "LABEL_CASE": "Write \"{label}:\" in uppercase letters."
+    },
+    "grades": {
+      "ready": "STE-ready",
+      "close": "Close",
+      "work": "Needs work",
+      "not": "Not STE",
+      "empty": "Empty text"
+    }
+  }
+}

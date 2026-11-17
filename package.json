@@ -1,0 +1,43 @@
+{
+  "name": "ste-lint",
+  "version": "0.1.0",
+  "description": "Linter for simplified technical language: ASD-STE100 rules for English, a German analogue. Ships a pi extension with /ste-lint and an automatic repair hook.",
+  "license": "MIT",
+  "author": "ste-lint authors",
+  "type": "module",
+  "keywords": [
+    "pi-package",
+    "ste100",
+    "simplified-technical-english",
+    "linter",
+    "technical-writing",
+    "leichte-sprache"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "pi": {
+    "extensions": [
+      "./extensions/index.js"
+    ]
+  },
+  "files": [
+    "src",
+    "lists",
+    "extensions",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test tests/*.test.js extensions/test.mjs"
+  },
+  "peerDependencies": {
+    "@earendil-works/pi-coding-agent": "*",
+    "@earendil-works/pi-tui": "*"
+  }
+}
