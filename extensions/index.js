@@ -10,20 +10,33 @@
  * in ./guard.js decide whether a settle is really an answer to the user.
  */
 
+import { appendFileSync, mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { dirname, join } from "node:path";
+
 import { lint, repairInstructions } from "../src/index.js";
 import { assistantText, evaluateGuard } from "./guard.js";
 
 const MAX_FINDINGS = 40;
+
+/**
+ * Why did the hook stay out? Set PI_STE_LINT_DEBUG=1 to log every decision to
+ * ~/.cache/ste-lint/guard.log, or set it to a file path. Silent by default:
+ * writing during a session would land in the running UI.
+ */
+function debugLog(entry) {
+  const target = process.env.PI_STE_LINT_DEBUG;
+  if (!target) return;
+  const file = target === "1" ? join(homedir(), ".cache", "ste-lint", "guard.log") : target;
+  try {
+    mkdirSync(dirname(file), { recursive: true });
+    appendFileSync(file, `${JSON.stringify({ at: new Date().toISOString(), ...entry })}\n`);
+  } catch {
+    // A broken log path must not break the hook.
+  }
+}
 const DEFAULT_THRESHOLD = 90;
 const MAX_REPAIRS_PER_RUN = 1;
-
-const state = {
-  enabled: false,
-  threshold: DEFAULT_THRESHOLD,
-  startedByUser: false,
-  handledIds: new Set(),
-  repairsThisRun: 0,
-};
 
 function lastAssistant(ctx) {
   const entries = ctx.sessionManager.getBranch?.() ?? ctx.sessionManager.getEntries?.() ?? [];
@@ -79,6 +92,16 @@ function repairPrompt(result, fixes) {
 }
 
 export default async function steLint(pi) {
+  // Per instance, not per module: a second package instance must not share the
+  // switch with the first.
+  const state = {
+    enabled: false,
+    threshold: DEFAULT_THRESHOLD,
+    startedByUser: false,
+    handledIds: new Set(),
+    repairsThisRun: 0,
+  };
+
   let tui = null;
   try {
     tui = await import("@earendil-works/pi-tui");
@@ -133,15 +156,22 @@ export default async function steLint(pi) {
       repairsThisRun: state.repairsThisRun,
       maxRepairs: MAX_REPAIRS_PER_RUN,
     });
-    if (!verdict.allow) return undefined;
+    if (!verdict.allow) {
+      debugLog({ event: "settle", decision: "skip", reason: verdict.reason, enabled: state.enabled, mode: ctx.mode, startedByUser: state.startedByUser });
+      return undefined;
+    }
 
     const text = assistantText(message);
     const result = lint(text);
-    if (result.score === null || result.score >= state.threshold) return undefined;
+    if (result.score === null || result.score >= state.threshold) {
+      debugLog({ event: "settle", decision: "skip", reason: "score-ok", score: result.score, threshold: state.threshold, language: result.language });
+      return undefined;
+    }
 
     const fixes = repairInstructions(result, { max: 8 });
     if (!fixes.length) return undefined;
 
+    debugLog({ event: "settle", decision: "repair", score: result.score, threshold: state.threshold, language: result.language, fixes: fixes.length });
     state.handledIds.add(entryId);
     state.repairsThisRun += 1;
     return {

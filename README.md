@@ -46,6 +46,11 @@ Ein lokales Paket wird von seinem Pfad geladen, nicht kopiert. Nach einer
 | `/ste-guard on 85` | schaltet ihn ein, Schwelle 85 (Standard 90) |
 | `/ste-guard off` | schaltet ihn aus |
 
+Wenn der Haken nicht greift und du wissen willst, warum: `PI_STE_LINT_DEBUG=1`
+schreibt jede Entscheidung mit Grund nach `~/.cache/ste-lint/guard.log`
+(`PI_STE_LINT_DEBUG=/pfad/datei.log` für einen anderen Ort). Ohne die Variable
+schreibt er nichts.
+
 Der Haken sitzt auf `agent_before_settle` und greift nur, wenn die Sitzung
 wirklich eine Antwort an dich ist: kein `toolCall`, kein Subagenten-Lauf, Modus
 `tui`, überwiegend Fließtext. Sonst bleibt sie unangetastet. Begründung mit

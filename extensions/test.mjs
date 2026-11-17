@@ -10,6 +10,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import { readFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
 import { assistantText, codeShare, evaluateGuard, hasToolCall } from "./guard.js";
 import steLint from "./index.js";
 
@@ -222,6 +226,45 @@ test("Haken lässt gute Antworten in Ruhe", async () => {
   h.setBranch([entry("m6", assistantMessage(GOOD_TEXT))]);
   await h.fire("before_agent_start", { messageType: "user" });
   assert.equal(await h.settle(), undefined);
+});
+
+test("Diagnose schreibt einen Grund pro Entscheidung", async () => {
+  const file = join(tmpdir(), `ste-lint-guard-${process.pid}.log`);
+  process.env.PI_STE_LINT_DEBUG = file;
+  try {
+    const h = await enabledHarness();
+    h.setBranch([entry("m8", assistantMessage(BAD_TEXT))]);
+    await h.fire("before_agent_start", { messageType: "user" });
+    await h.settle();
+
+    const lines = readFileSync(file, "utf8").trim().split("\n").map((line) => JSON.parse(line));
+    const last = lines.at(-1);
+    assert.equal(last.decision, "repair");
+    assert.equal(typeof last.score, "number");
+    assert.equal(last.language, "en");
+  } finally {
+    delete process.env.PI_STE_LINT_DEBUG;
+    rmSync(file, { force: true });
+  }
+});
+
+test("Diagnose nennt den Grund, wenn der Haken aus ist", async () => {
+  const file = join(tmpdir(), `ste-lint-guard-off-${process.pid}.log`);
+  process.env.PI_STE_LINT_DEBUG = file;
+  try {
+    const h = harness();
+    await steLint(h.pi);
+    h.setBranch([entry("m9", assistantMessage(BAD_TEXT))]);
+    await h.fire("before_agent_start", { messageType: "user" });
+    await h.settle();
+
+    const last = JSON.parse(readFileSync(file, "utf8").trim().split("\n").at(-1));
+    assert.equal(last.decision, "skip");
+    assert.equal(last.reason, "disabled");
+  } finally {
+    delete process.env.PI_STE_LINT_DEBUG;
+    rmSync(file, { force: true });
+  }
 });
 
 test("ste-lint prüft weiterhin auf Zuruf", async () => {
