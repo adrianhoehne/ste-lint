@@ -1,6 +1,6 @@
 {
   "name": "ste-lint",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Linter for simplified technical language: ASD-STE100 rules for English, a German analogue. Ships a pi extension with /ste-lint and an automatic repair hook.",
   "license": "MIT",
   "author": "ste-lint authors",

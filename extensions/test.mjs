@@ -244,26 +244,34 @@ test("the footer shows the switch and follows it", async () => {
   assert.equal(h.statuses.at(-1).text, "STE off");
 
   await h.run("ste-guard", "on 80");
-  assert.equal(h.statuses.at(-1).text, "STE 80");
+  assert.equal(h.statuses.at(-1).text, "STE(80)");
   assert.equal(h.statuses.at(-1).key, "ste-lint");
 
   await h.run("ste-guard", "off");
   assert.equal(h.statuses.at(-1).text, "STE off");
 });
 
-test("a repair round is announced and its result reported", async () => {
+test("a repair round shows before → after in the footer", async () => {
   const h = await enabledHarness();
   h.setBranch([entry("r1", assistantMessage(BAD_TEXT))]);
   await h.fire("before_agent_start", { messageType: "user" });
 
   await h.settle();
   assert.match(h.notices.at(-1).message, /repair round — \d+\/100, \d+ fixes/);
-  assert.equal(h.statuses.at(-1).text, "STE 90 · repairing");
+  assert.match(h.statuses.at(-1).text, /^STE\(90\) Current: \d+ → …$/);
 
+  const before = Number(/Current: (\d+)/.exec(h.statuses.at(-1).text)[1]);
   h.setBranch([entry("r1", assistantMessage(BAD_TEXT)), entry("r2", assistantMessage(GOOD_TEXT))]);
   await h.settle();
-  assert.match(h.notices.at(-1).message, /STE: repaired \d+ → \d+/);
-  assert.equal(h.statuses.at(-1).text, "STE 90");
+  assert.equal(h.statuses.at(-1).text, `STE(90) Current: ${before} → 100`);
+});
+
+test("an answer without a round drops the old arrow", async () => {
+  const h = await enabledHarness();
+  h.fire("before_agent_start", { messageType: "user" });
+  h.setBranch([entry("g1", assistantMessage(GOOD_TEXT))]);
+  await h.settle();
+  assert.equal(h.statuses.at(-1).text, "STE(90) Current: 100");
 });
 
 test("diagnostics write one reason per decision", async () => {

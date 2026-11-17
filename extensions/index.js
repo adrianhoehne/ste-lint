@@ -16,7 +16,7 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { lint, repairInstructions } from "../src/index.js";
-import { assistantText, evaluateGuard } from "./guard.js";
+import { assistantText, evaluateGuard, hasToolCall } from "./guard.js";
 
 const MAX_FINDINGS = 40;
 
@@ -125,29 +125,41 @@ export default async function steLint(pi) {
     handledIds: new Set(),
     repairsThisRun: 0,
     pendingRepair: null,
+    lastScore: null,
+    delta: null,
   };
 
-  // After the repaired answer arrives, report what the round achieved.
-  const reportRepairResult = (ctx, message) => {
-    const pending = state.pendingRepair;
-    state.pendingRepair = null;
-    showStatus(ctx);
-    if (!pending) return;
-    const text = assistantText(message);
-    if (!text) return;
-    const after = lint(text).score;
-    const shown = after === null ? "?" : after;
-    debugLog({ event: "repair-result", before: pending.before, after });
-    try {
-      ctx?.ui?.notify?.(`STE: repaired ${pending.before} → ${shown}`, "info");
-    } catch {
-      // notify is UI-only.
+  /**
+   * Record the score of the answer the user is about to see. After a repair
+   * round the previous score stays visible as "before → after", otherwise the
+   * older number is dropped.
+   */
+  const noteScore = (ctx, score) => {
+    if (score === null) return;
+    if (state.pendingRepair) {
+      // Keep the score from before the round, add the new one behind the arrow.
+      const before = state.pendingRepair.before;
+      state.pendingRepair = null;
+      state.delta = score;
+      state.lastScore = before;
+      debugLog({ event: "repair-result", before, after: score });
+    } else {
+      state.lastScore = score;
+      state.delta = null;
     }
+    showStatus(ctx);
   };
 
-  const showStatus = (ctx, suffix) => {
-    const base = state.enabled ? `STE ${state.threshold}` : "STE off";
-    const text = suffix ? `${base} · ${suffix}` : base;
+  const showStatus = (ctx) => {
+    let text = "STE off";
+    if (state.enabled) {
+      text = `STE(${state.threshold})`;
+      if (state.lastScore !== null) {
+        text += ` Current: ${state.lastScore}`;
+        if (state.pendingRepair) text += " → …";
+        else if (state.delta !== null) text += ` → ${state.delta}`;
+      }
+    }
     try {
       ctx?.ui?.setStatus?.("ste-lint", text);
     } catch {
@@ -219,16 +231,22 @@ export default async function steLint(pi) {
       repairsThisRun: state.repairsThisRun,
       maxRepairs: MAX_REPAIRS_PER_RUN,
     });
+    const text = assistantText(message);
+
     if (!verdict.allow) {
       debugLog({ event: "settle", decision: "skip", reason: verdict.reason, enabled: state.enabled, mode: ctx.mode, startedByUser: state.startedByUser });
-      if (verdict.reason === "repair-limit") reportRepairResult(ctx, message);
+      // The footer shows the score of every answer to the user, even when the
+      // hook stays out. Only messages with text and without tool calls qualify.
+      if (ctx.mode === "tui" && state.startedByUser && text && !hasToolCall(message)) {
+        noteScore(ctx, lint(text).score);
+      }
       return undefined;
     }
 
-    const text = assistantText(message);
     const result = lint(text);
     if (result.score === null || result.score >= state.threshold) {
       debugLog({ event: "settle", decision: "skip", reason: "score-ok", score: result.score, threshold: state.threshold, language: result.language });
+      noteScore(ctx, result.score);
       return undefined;
     }
 
@@ -239,7 +257,9 @@ export default async function steLint(pi) {
     state.handledIds.add(entryId);
     state.repairsThisRun += 1;
     state.pendingRepair = { before: result.score, entryId };
-    showStatus(ctx, "repairing");
+    state.lastScore = result.score;
+    state.delta = null;
+    showStatus(ctx);
     try {
       ctx?.ui?.notify?.(`STE: repair round — ${result.score}/100, ${fixes.length} fixes`, "info");
     } catch {

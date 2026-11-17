@@ -72,7 +72,8 @@ continuation itself is not treated as a user run, so gate 6 is the loop stop.
 Every decision is logged with a reason code when `PI_STE_LINT_DEBUG` is set.
 
 The round is visible: notification with score and fix count, a banner in the
-transcript, and `STE 90 · repairing` in the footer until the new answer arrives.
+transcript, and the footer moving from `Current: 36` to `Current: 36 → …` and
+finally `Current: 36 → 94`. Nothing of that reaches the model context.
 
 ## D · Where the hook sits in one run
 

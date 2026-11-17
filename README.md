@@ -23,7 +23,7 @@ pi install --local /home/adrian/ste-lint  # current project only
 From the repository, pinned to a tag:
 
 ```bash
-pi install git:github.com/adrianhoehne/ste-lint@v0.1.5
+pi install git:github.com/adrianhoehne/ste-lint@v0.1.6
 ```
 
 Try it once without saving anything:
@@ -45,13 +45,22 @@ in the running session is enough.
 | `/ste-guard on 85` | switch it on, threshold 85 (default 90) |
 | `/ste-guard off` | switch it off |
 
-The footer shows the state: `STE off` or `STE 85`. If the entry is missing, the
-extension did not load.
+The footer carries the state and the last score:
 
-When it repairs, you see three things: a notification with the score and the
-number of fixes, a banner in the transcript (`STE repair round — 36/100, 8 fixes`,
-expandable), and the footer `STE 90 · repairing` until the new answer arrives.
-Afterwards it reports the result: `STE: repaired 36 → 94`.
+| Footer | Meaning |
+|---|---|
+| `STE off` | hook off |
+| `STE(85)` | hook on, nothing measured yet |
+| `STE(85) Current: 74` | score of the last answer, no repair |
+| `STE(85) Current: 74 → …` | a repair round is running |
+| `STE(85) Current: 74 → 94` | the round brought the answer to 94 |
+
+The score in the footer is computed for every answer to you, even when the hook
+stays out. If the entry is missing, the extension did not load.
+
+When it repairs, you see a notification with the score and the number of fixes
+and a banner in the transcript (`STE repair round — 36/100, 8 fixes`,
+expandable). The round itself is visible in the footer as `Current: 36 → …`.
 
 The hook sits on `agent_before_settle` and only acts on an answer to you: no
 `toolCall`, no subagent run, mode `tui`, mostly prose. Seven gates decide this;
