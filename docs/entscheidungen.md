@@ -83,9 +83,14 @@ nach dem Einfügen unseres Entwurfs selbst nach und meldet eine abgelehnte
 Fortsetzung. Jede Prüfung hat einen Grund-Code, damit ein Protokoll sagt, warum der
 Haken draußen blieb.
 
-Bekannte Lücke: Es ist nicht gemessen, ob eine Fortsetzung aus dem Haken als
-`messageType: "custom"` ankommt. Prüfung 5 verlässt sich darauf; falls nicht,
-greift Prüfung 7 und begrenzt die Nachbesserung auf eine Runde.
+Gemessen im Live-Lauf: die Fortsetzung aus dem Haken kommt **nicht** als
+`messageType: "custom"` an — `before_agent_start` setzt das Kennzeichen nicht
+zurück. Die Schleife wird deshalb allein von Prüfung 6 (eine Reparatur pro Lauf)
+beendet, im Log sichtbar als `reason: "repair-limit"`. Wer die Prüfung entfernt,
+baut sich eine Endlosschleife.
+
+Ebenfalls gemessen: `context.canContinue` ist als Prüfung unbrauchbar (siehe
+oben) — sie blockierte jede Reparatur, bis sie entfernt war.
 
 ## Kein Browsermodus
 
