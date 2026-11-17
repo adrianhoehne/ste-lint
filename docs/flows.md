@@ -1,7 +1,7 @@
 # Flows
 
 How the linter reaches a text, and where the repair hook sits. State as built,
-version 0.1.6.
+version 0.1.8.
 
 Legend: green = does the right thing · amber = check with a finding · blue = hook
 or command.
@@ -71,7 +71,9 @@ The footer carries the score of every answer to you — `STE(85) Current: 74` �
 keeps a finished round visible as `STE(85) Current: 74 → 94`. That number costs no
 model round; it is a lint of a text that already exists.
 
-Threshold default 90, set with `/ste-guard on 85`. One repair per answer: the
+Threshold default 90, set with `/ste-guard on 85`. Gate 1 starts from
+`<agent-dir>/ste-lint.json` (shipped copy: `assets/ste-lint.json`); the command
+changes it for the session only. One repair per answer: the
 continuation itself is not treated as a user run, so gate 6 is the loop stop.
 Every decision is logged with a reason code when `PI_STE_LINT_DEBUG` is set.
 
@@ -102,5 +104,6 @@ Tool steps pass without a check. The hook sees a finished answer or nothing.
 ## Source of the statements
 
 pi types `AgentBeforeSettleEvent` (with `outcome`) and `AgentActivityOutcome`.
-The implementation is in [`../extensions/guard.js`](../extensions/guard.js), the
+The implementation is in [`../extensions/guard.js`](../extensions/guard.js) and
+[`../extensions/settings.js`](../extensions/settings.js), the
 reasons in [`decisions.md`](decisions.md).

@@ -10,12 +10,31 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import { assistantText, codeShare, evaluateGuard, hasToolCall } from "./guard.js";
 import steLint from "./index.js";
+import { configPath } from "./settings.js";
+
+// No config file unless a test asks for one. A developer machine may have one in
+// ~/.pi/agent, and the suite must not depend on that.
+const NO_CONFIG = join(tmpdir(), `ste-lint-no-config-${process.pid}.json`);
+process.env.PI_STE_LINT_STATE = NO_CONFIG;
+
+let configCount = 0;
+
+/** Point the extension at a temp config file with `content`. Returns the restore. */
+function useConfig(content) {
+  const file = join(tmpdir(), `ste-lint-config-${process.pid}-${++configCount}.json`);
+  if (content !== undefined) writeFileSync(file, typeof content === "string" ? content : JSON.stringify(content));
+  process.env.PI_STE_LINT_STATE = file;
+  return () => {
+    process.env.PI_STE_LINT_STATE = NO_CONFIG;
+    rmSync(file, { force: true });
+  };
+}
 
 const BAD_TEXT = "Obviously, acquire the lamp. The valve is not opened.";
 const GOOD_TEXT = "1. Remove the cover.\n2. Clean the valve.";
@@ -176,6 +195,128 @@ test("ste-guard rejects unknown input", async () => {
   await steLint(h.pi);
   await h.run("ste-guard", "vielleicht");
   assert.match(h.notices.at(-1).message, /Usage/);
+});
+
+// ── settings file ──────────────────────────────────────────────────────────
+
+test("the config path follows the agent directory", () => {
+  assert.equal(configPath({ PI_CODING_AGENT_DIR: "/tmp/agent" }), join("/tmp/agent", "ste-lint.json"));
+  assert.equal(configPath({ PI_CODING_AGENT_DIR: "/tmp/agent", PI_STE_LINT_STATE: "/tmp/x.json" }), "/tmp/x.json");
+  assert.match(configPath({}), /ste-lint\.json$/);
+});
+
+test("no config file leaves the hook off", async () => {
+  const h = harness();
+  await steLint(h.pi);
+  await h.fire("session_start", {});
+  assert.equal(h.statuses.at(-1).text, "STE off");
+  await h.run("ste-guard");
+  assert.match(h.notices.at(-1).message, /off — no config file/);
+});
+
+test("a config file supplies the start state", async () => {
+  const restore = useConfig({ version: 1, guard: { enabled: true, threshold: 85 } });
+  try {
+    const h = harness();
+    await steLint(h.pi);
+    await h.fire("session_start", {});
+    assert.equal(h.statuses.at(-1).text, "STE(85)");
+    await h.run("ste-guard");
+    assert.match(h.notices.at(-1).message, /on, threshold 85 — from/);
+    await h.run("ste-guard", "off");
+    assert.match(h.notices.at(-1).message, /off \(session only/);
+    await h.run("ste-guard");
+    assert.match(h.notices.at(-1).message, /off — changed for this session; the next start uses/);
+  } finally {
+    restore();
+  }
+});
+
+test("a config file enables the repair", async () => {
+  const restore = useConfig({ version: 1, guard: { enabled: true, threshold: 90 } });
+  try {
+    const h = harness();
+    await steLint(h.pi);
+    h.setBranch([entry("c1", assistantMessage(BAD_TEXT))]);
+    await h.fire("before_agent_start", { messageType: "user" });
+    assert.equal((await h.settle()).continue, true);
+  } finally {
+    restore();
+  }
+});
+
+test("a broken config file stays off and names the reason", async () => {
+  const restore = useConfig("{ not json");
+  try {
+    const h = harness();
+    await steLint(h.pi);
+    await h.fire("session_start", {});
+    assert.equal(h.statuses.at(-1).text, "STE off");
+    await h.run("ste-guard");
+    assert.match(h.notices.at(-1).message, /config ignored \(corrupt\)/);
+  } finally {
+    restore();
+  }
+});
+
+test("one bad field disables the whole file", async () => {
+  const restore = useConfig({ version: 1, guard: { enabled: true, threshold: 150 } });
+  try {
+    const h = harness();
+    const api = await steLint(h.pi);
+    assert.equal(api.state.enabled, false);
+    await h.run("ste-guard");
+    assert.match(h.notices.at(-1).message, /config ignored \(threshold\)/);
+  } finally {
+    restore();
+  }
+});
+
+test("the config sets the threshold for a later switch", async () => {
+  const restore = useConfig({ version: 1, guard: { enabled: false, threshold: 75 } });
+  try {
+    const h = harness();
+    const api = await steLint(h.pi);
+    assert.equal(api.state.enabled, false);
+    await h.run("ste-guard", "on");
+    assert.equal(api.state.enabled, true);
+    assert.equal(api.state.threshold, 75);
+    assert.match(h.notices.at(-1).message, /session only/);
+  } finally {
+    restore();
+  }
+});
+
+test("unknown keys and fields are ignored, an unknown version is not", async () => {
+  const loose = useConfig({ version: 1, note: "mine", guard: { enabled: true, threshold: 80, extra: 1 } });
+  try {
+    const api = await steLint(harness().pi);
+    assert.equal(api.state.threshold, 80);
+  } finally {
+    loose();
+  }
+
+  const future = useConfig({ version: 2, guard: { enabled: true, threshold: 80 } });
+  try {
+    const api = await steLint(harness().pi);
+    assert.equal(api.state.enabled, false);
+  } finally {
+    future();
+  }
+});
+
+test("a switch is never written back to the file", async () => {
+  const restore = useConfig({ version: 1, guard: { enabled: true, threshold: 85 } });
+  try {
+    const h = harness();
+    const api = await steLint(h.pi);
+    await h.run("ste-guard", "off");
+    assert.equal(api.state.enabled, false);
+    const onDisk = JSON.parse(readFileSync(process.env.PI_STE_LINT_STATE, "utf8"));
+    assert.deepEqual(onDisk, { version: 1, guard: { enabled: true, threshold: 85 } });
+  } finally {
+    restore();
+  }
 });
 
 test("the hook repairs a bad answer once", async () => {

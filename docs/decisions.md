@@ -85,6 +85,33 @@ Also measured: the continuation from the hook does **not** arrive as
 is therefore stopped by gate 6 alone (one repair per run), visible in the log as
 `reason: "repair-limit"`. Removing that gate builds an endless loop.
 
+## Settings file read, never written
+
+The hook's start state comes from `<agent-dir>/ste-lint.json`, read once at load
+(`extensions/settings.js`). The extension never writes that file: no `/ste-guard`
+switch is saved. Three reasons.
+
+**One source of truth.** A file that both the user and the extension write ends up
+with two states that differ: the runtime value and the one on disk. Read only,
+whatever the file says is what the next start uses, and nothing can overwrite a
+hand-edited comment-free JSON — including a switch the user only wanted for one
+run.
+
+**No API to use.** pi has no extension settings API. Its guidance for state
+depends on the lifetime, and this state outlives a session: "Data outside one
+session → External storage". A session entry would be worse than a file, because
+entries follow the branch — jumping back to an old branch would restore an old
+switch position.
+
+**The whole file or nothing.** One malformed field ignores the entire file instead
+of mixing a file value with a default. A mixture is nearly impossible to explain
+in the status line; `config ignored (threshold)` is caught in one second. Unknown
+keys stay ignored, so a newer file format with extra fields keeps the known ones.
+
+The file ships as `assets/ste-lint.json`, so opting in is a copy, not an edit.
+Without the file the hook stays off, which keeps the default cost at zero extra
+model rounds.
+
 ## No browser mode
 
 The lists are read with `node:fs` when the package loads. That keeps the package

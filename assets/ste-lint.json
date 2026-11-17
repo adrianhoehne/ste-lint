@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "guard": {
+    "enabled": true,
+    "threshold": 90
+  }
+}

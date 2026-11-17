@@ -17,6 +17,7 @@ import { pathToFileURL } from "node:url";
 
 import { lint, repairInstructions } from "../src/index.js";
 import { assistantText, evaluateGuard, hasToolCall } from "./guard.js";
+import { readGuardConfig } from "./settings.js";
 
 const MAX_FINDINGS = 40;
 
@@ -59,7 +60,6 @@ function debugLog(entry) {
     // A broken log path must not break the hook.
   }
 }
-const DEFAULT_THRESHOLD = 90;
 const MAX_REPAIRS_PER_RUN = 1;
 
 function lastAssistant(ctx) {
@@ -116,11 +116,24 @@ function repairPrompt(result, fixes) {
 }
 
 export default async function steLint(pi) {
+  // The start state comes from the settings file, read once. No file means off:
+  // the hook never switches itself on. `/ste-guard` changes only this session;
+  // the file decides the next start.
+  const config = readGuardConfig();
+  debugLog({
+    event: "config",
+    source: config.source,
+    reason: config.reason,
+    file: config.file,
+    enabled: config.enabled,
+    threshold: config.threshold,
+  });
+
   // Per instance, not per module: a second package instance must not share the
   // switch with the first.
   const state = {
-    enabled: false,
-    threshold: DEFAULT_THRESHOLD,
+    enabled: config.enabled,
+    threshold: config.threshold,
     startedByUser: false,
     handledIds: new Set(),
     repairsThisRun: 0,
@@ -149,6 +162,24 @@ export default async function steLint(pi) {
     }
     showStatus(ctx);
   };
+
+  // A long absolute path in a status line is noise: show it from the home
+  // directory on.
+  const fileLabel = config.file.startsWith(homedir()) ? `~${config.file.slice(homedir().length)}` : config.file;
+
+  /** Where the start state came from, and whether the session changed it. */
+  const startNote = () => {
+    if (config.reason === "missing") return " — no config file, starts off";
+    if (config.source !== "config") return ` — config ignored (${config.reason}): ${fileLabel}`;
+    if (config.enabled === state.enabled && config.threshold === state.threshold) return ` — from ${fileLabel}`;
+    return ` — changed for this session; the next start uses ${fileLabel}`;
+  };
+
+  /** A switch is never saved, so say what happens on the next start. */
+  const switchNote = () =>
+    config.source === "config"
+      ? " (session only; the file sets the next start)"
+      : " (session only; starts off without a config file)";
 
   const showStatus = (ctx) => {
     let text = "STE off";
@@ -333,7 +364,7 @@ export default async function steLint(pi) {
       if (!first) {
         const status = state.enabled ? `on, threshold ${state.threshold}` : "off";
         showStatus(ctx);
-        ctx.ui.notify(`ste-guard: ${status}`, "info");
+        ctx.ui.notify(`ste-guard: ${status}${startNote()}`, "info");
         return;
       }
       if (first === "on" || first === "off") {
@@ -346,14 +377,14 @@ export default async function steLint(pi) {
         }
         const status = state.enabled ? `on, threshold ${state.threshold}` : "off";
         showStatus(ctx);
-        ctx.ui.notify(`ste-guard: ${status}`, "info");
+        ctx.ui.notify(`ste-guard: ${status}${switchNote()}`, "info");
         return;
       }
       if (Number.isFinite(Number(first)) && Number(first) > 0 && Number(first) <= 100) {
         state.threshold = Number(first);
         state.enabled = true;
         showStatus(ctx);
-        ctx.ui.notify(`ste-guard: on, threshold ${state.threshold}`, "info");
+        ctx.ui.notify(`ste-guard: on, threshold ${state.threshold}${switchNote()}`, "info");
         return;
       }
       ctx.ui.notify("Usage: /ste-guard [on|off|80]", "warning");

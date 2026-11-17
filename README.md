@@ -41,9 +41,9 @@ in the running session is enough.
 |---|---|
 | `/ste-lint` | check the last answer: score, grade, findings |
 | `/ste-lint de` | same, language forced (`en`, `auto` also work) |
-| `/ste-guard` | show the state of the repair hook |
-| `/ste-guard on 85` | switch it on, threshold 85 (default 90) |
-| `/ste-guard off` | switch it off |
+| `/ste-guard` | show the state of the repair hook and where the start state comes from |
+| `/ste-guard on 85` | switch it on, threshold 85 (default 90), this session only |
+| `/ste-guard off` | switch it off, this session only |
 
 The footer carries the state and the last score:
 
@@ -67,13 +67,54 @@ The hook sits on `agent_before_settle` and only acts on an answer to you: no
 each has a reason code for the log. Otherwise the answer stays untouched. Why,
 with diagrams: [`docs/flows.md`](docs/flows.md).
 
-The hook is **off** by default and does not survive a restart. It costs one extra
+The hook is **off** until a settings file switches it on. It costs one extra
 model round per repair.
 
-If the hook does not fire and you want to know why: `PI_STE_LINT_DEBUG=1` writes
-every decision with its reason to `~/.cache/ste-lint/guard.log`
-(`PI_STE_LINT_DEBUG=/path/file.log` for another location). Without the variable
-it writes nothing.
+## Start state from a file
+
+The extension reads one file when it loads. The file decides whether the hook
+starts on and with which threshold. Without the file the hook stays off.
+
+Copy the shipped file into pi's config directory, from the repository or from
+the installed package:
+
+```bash
+cp assets/ste-lint.json ~/.pi/agent/ste-lint.json
+```
+
+```json
+{
+  "version": 1,
+  "guard": {
+    "enabled": true,
+    "threshold": 90
+  }
+}
+```
+
+| Field | Type | Default without a file | Meaning |
+|---|---|---|---|
+| `version` | `1` | – | Format version. Another number ignores the file. |
+| `guard.enabled` | boolean | `false` | Does the hook start on? |
+| `guard.threshold` | integer 1–100 | `90` | Minimum score. `/ste-guard on` keeps it. |
+
+The file is read where pi looks for its configuration:
+`$PI_CODING_AGENT_DIR/ste-lint.json`, otherwise `~/.pi/agent/ste-lint.json`.
+`PI_STE_LINT_STATE` points at another file as a whole.
+
+Rules, stated plainly:
+
+- **Read only.** The extension never writes the file. `/ste-guard on` and
+  `/ste-guard off` last until pi restarts, so a switch can never overwrite what
+  you put on disk.
+- **The whole file counts.** One missing or malformed field ignores the complete
+  file and leaves the hook off. `/ste-guard` then shows the reason:
+  `config ignored (threshold)`. Unknown extra keys are ignored.
+- **After an edit, run `/reload`.** The file is read once at load, not per answer.
+- **Why the hook stayed out.** `PI_STE_LINT_DEBUG=1` writes every decision, and
+  one `config` line with `source`, `reason` and path, to
+  `~/.cache/ste-lint/guard.log` (`PI_STE_LINT_DEBUG=/path/file.log` for another
+  location). Without the variable it writes nothing.
 
 ## What is checked
 
@@ -174,8 +215,8 @@ Design decisions and their reasons: [`docs/decisions.md`](docs/decisions.md).
 npm test
 ```
 
-104 tests: 77 for the linter (English, German, language detection, word lists,
-offsets), 27 for the extension against a stand-in `pi` object.
+113 tests: 77 for the linter (English, German, language detection, word lists,
+offsets), 36 for the extension against a stand-in `pi` object.
 
 ## License
 
