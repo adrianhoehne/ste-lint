@@ -4,6 +4,14 @@
   "description": "Linter for simplified technical language: ASD-STE100 rules for English, a German analogue. Ships a pi extension with /ste-lint and an automatic repair hook.",
   "license": "MIT",
   "author": "ste-lint authors",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/adrianhoehne/ste-lint.git"
+  },
+  "homepage": "https://github.com/adrianhoehne/ste-lint#readme",
+  "bugs": {
+    "url": "https://github.com/adrianhoehne/ste-lint/issues"
+  },
   "type": "module",
   "keywords": [
     "pi-package",

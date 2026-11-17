@@ -21,10 +21,10 @@ pi install /home/adrian/ste-lint          # persönlich, in jeder Sitzung
 pi install --local /home/adrian/ste-lint  # nur im aktuellen Projekt
 ```
 
-Aus einem Git-Repository, sobald es eins gibt:
+Aus dem Git-Repository, auf einen Tag festgelegt:
 
 ```bash
-pi install git:github.com/<konto>/ste-lint@v0.1.0
+pi install git:github.com/adrianhoehne/ste-lint@v0.1.0
 ```
 
 Einmal ausprobieren, ohne etwas zu speichern:
